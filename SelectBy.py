@@ -9,8 +9,8 @@ import maya.OpenMaya as om
 import maya.OpenMayaUI as omu
 
 
-def test():
-    print('test')
+def displayUI():
+    myUI()
 
 
 def myUI():
@@ -36,28 +36,12 @@ def myUI():
     cmds.separator(h=10, style='none')
 
     # Create Layout for Selected Objects
-    cmds.iconTextStaticLabel(st='textOnly', l='sphere')
+    cmds.iconTextStaticLabel(st='textOnly', l='Selected Objects')
 
-    """cmds.scriptJob(e=['SelectionChanged', 'test()'])
-    cmds.scriptJob(killAll=True, force=True)
-    print('Killed Script Job')"""
+    cmds.scriptJob(e=['SelectionChanged', refreshUI])
 
-    # Display list of currently selected objects
-    selected_objects = cmds.ls(selection=True)
-
-    # Print out the list of selected objects in the script editor
-    print("Selected objects: ", selected_objects)
-
-    # Or display the selected objects in a UI window
-    if selected_objects:
-        # Create a layout to hold the text
-        cmds.scrollLayout('selectedObjects', w=500, h=100, p='mainUI_A', cr=True, ebg=True, bgc=[1, 0, 0])
-
-        # Add a text label for each selected object
-        for obj in selected_objects:
-            cmds.text(label=obj, p='selectedObjects')
-    else:
-        cmds.warning("No objects selected.")
+    # Initial UI refresh
+    refreshUI()
 
     # Selection Modes
     cmds.rowColumnLayout(nc=3, cw=[(1, 100), (2, 100), (3, 100)], cs=[(1, 10), (2, 10), (3, 10)], p='mainUI_B')
@@ -113,9 +97,7 @@ def myUI():
 
     # Select From Not in Camera View
     cmds.button(label='Select From Not in Camera View', c=lambda args: cmds.select(inverse(selectFromCamera())))
-
     cmds.setParent('..')
-
     cmds.showWindow('SelectBy')
 
 
@@ -143,7 +125,7 @@ def inverse(selectedObjects):
     print('Selected Objects:' + str(selectedObjects))
     nonSelectedObjects = list(set(allObjects).difference(selectedObjects))
     print(nonSelectedObjects)
-    return(nonSelectedObjects)
+    return nonSelectedObjects
 
 
 def selectEdge():
@@ -168,5 +150,26 @@ def storeSliderValue(slider, value):
     sliderValues[index] = value
     print(sliderValues)
 
-def displayUI():
-    myUI()
+
+def refreshUI():
+    # Clear the existing UI contents
+    if cmds.scrollLayout('selectedObjects', exists=True):
+        cmds.deleteUI('selectedObjects', control=True)
+
+    # Display list of currently selected objects
+    selected_objects = cmds.ls(selection=True)
+
+    # Print out the list of selected objects in the script editor
+    print("Selected objects: ", selected_objects)
+
+    if selected_objects:
+        # Create a layout to hold the text
+        cmds.scrollLayout('selectedObjects', w=500, h=100, p='mainUI_A', cr=True, ebg=True, bgc=[1, 0, 0])
+
+        # Add a text label for each selected object
+        for obj in selected_objects:
+            cmds.text(label=obj, p='selectedObjects')
+    else:
+        cmds.warning("No objects selected.")
+    print('Refreshed UI')
+
