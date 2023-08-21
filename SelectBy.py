@@ -1,3 +1,6 @@
+# Select By
+# Henry Foley, 2023
+
 # import SelectBy
 # import importlib
 # importlib.reload(SelectBy)
@@ -7,6 +10,17 @@ import maya.cmds as cmds
 import maya.mel as mel
 import maya.OpenMaya as om
 import maya.OpenMayaUI as omu
+from enum import Enum
+
+
+class SelectMode(Enum):
+    VERTEX = 1
+    EDGE = 2
+    FACE = 3
+    OBJ = 4
+
+
+currentSelectMode = None
 
 
 def displayUI():
@@ -43,9 +57,16 @@ def myUI():
     # Initial UI refresh
     refreshUI()
 
+    # Init Selection Mode
+    global currentSelectMode
+    currentSelectMode = SelectMode.OBJ
+
     # Selection Modes
     cmds.rowColumnLayout(nc=3, cw=[(1, 100), (2, 100), (3, 100)], cs=[(1, 10), (2, 10), (3, 10)], p='mainUI_B')
-    cmds.button(l='Edge Selection', command=lambda args: selectEdge())
+    cmds.button(l='Vertices Selection', c=lambda args: selectVerts())
+    cmds.button(l='Edge Selection', c=lambda args: selectEdge())
+    cmds.button(l='Face Selection', c=lambda args: selectFace())
+    cmds.button(l='Obj Selection', c=lambda args: selectObj())
 
     # Selection Tabs
     cmds.frameLayout('selectTabs', labelVisible=False, width=500, height=400, p='mainUI_B')
@@ -81,7 +102,7 @@ def myUI():
     # Name Tab
     nameTab = cmds.columnLayout()
     cmds.tabLayout(tabs, edit=True, tabLabel=[nameTab, 'Name'])
-    cmds.button(label='Button')
+    cmds.button(label='Button', c=lambda args: print(currentSelectMode))
 
     # Select All
     cmds.button(label='Select All', c=lambda args: cmds.select(selectAll()))
@@ -121,15 +142,37 @@ def visibleObjects():
 
 def inverse(selectedObjects):
     allObjects = selectAll()
-    print('All Objects:' + str(allObjects))
-    print('Selected Objects:' + str(selectedObjects))
     nonSelectedObjects = list(set(allObjects).difference(selectedObjects))
-    print(nonSelectedObjects)
     return nonSelectedObjects
 
 
+def selectVerts():
+    global currentSelectMode
+    vertices = cmds.polyListComponentConversion(toVertex=True)
+    cmds.select(vertices)
+    currentSelectMode = SelectMode.VERTEX
+    print(currentSelectMode)
+
+
 def selectEdge():
-    cmds.selectType(allObjects=True)
+    global currentSelectMode
+    edges = cmds.polyListComponentConversion(toEdge=True)
+    cmds.select(edges)
+    currentSelectMode = SelectMode.EDGE
+
+
+def selectFace():
+    global currentSelectMode
+    faces = cmds.polyListComponentConversion(toFace=True)
+    cmds.select(faces)
+    currentSelectMode = SelectMode.FACE
+
+
+def selectObj():
+    global currentSelectMode
+    faces = cmds.polyListComponentConversion(toObject=True)
+    cmds.select(faces)
+    currentSelectMode = SelectMode.OBJ
 
 
 def selectFromCamera():
@@ -159,9 +202,6 @@ def refreshUI():
     # Display list of currently selected objects
     selected_objects = cmds.ls(selection=True)
 
-    # Print out the list of selected objects in the script editor
-    print("Selected objects: ", selected_objects)
-
     if selected_objects:
         # Create a layout to hold the text
         cmds.scrollLayout('selectedObjects', w=500, h=100, p='mainUI_A', cr=True, ebg=True, bgc=[1, 0, 0])
@@ -171,5 +211,3 @@ def refreshUI():
             cmds.text(label=obj, p='selectedObjects')
     else:
         cmds.warning("No objects selected.")
-    print('Refreshed UI')
-
