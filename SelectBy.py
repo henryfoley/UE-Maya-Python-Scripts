@@ -70,11 +70,12 @@ def myUI():
 
     # Selection Tabs
     cmds.frameLayout('selectTabs', labelVisible=False, width=500, height=400, p='mainUI_B')
-
     tabs = cmds.tabLayout(p='selectTabs')
-    # add first tab
+
+    # Normals Tab
     firstTab = cmds.columnLayout()
     cmds.tabLayout(tabs, edit=True, tabLabel=[firstTab, 'Normals'])
+
     cmds.button(label='Select Hard Edges', c='cmds.polySelectConstraint(m=3,t=0x8000, sm=1)')
     cmds.button(label='Select Soft Edges', c='cmds.polySelectConstraint(m=3,t=0x8000, sm=2)')
 
@@ -96,28 +97,22 @@ def myUI():
     # Size Tab
     sizeTab = cmds.columnLayout()
     cmds.tabLayout(tabs, edit=True, tabLabel=[sizeTab, 'Size'])
+
     cmds.button(label='Button')
+
     cmds.setParent('..')
 
     # Name Tab
     nameTab = cmds.columnLayout()
     cmds.tabLayout(tabs, edit=True, tabLabel=[nameTab, 'Name'])
+
     cmds.button(label='Button', c=lambda args: print(currentSelectMode))
-
-    # Select All
     cmds.button(label='Select All', c=lambda args: cmds.select(selectAll()))
-
-    # Select Visible
     cmds.button(label='Select Visible', c=lambda args: cmds.select(visibleObjects()))
-
-    # Select Non-Visible
     cmds.button(label='Select Non-Visible', c=lambda args: cmds.select(inverse(visibleObjects())))
-
-    # Select From Camera View
     cmds.button(label='Select From Camera View', c=lambda args: cmds.select(selectFromCamera()))
-
-    # Select From Not in Camera View
     cmds.button(label='Select From Not in Camera View', c=lambda args: cmds.select(inverse(selectFromCamera())))
+
     cmds.setParent('..')
     cmds.showWindow('SelectBy')
 
@@ -125,7 +120,6 @@ def myUI():
 def selectNGons():
     cmds.polySelectConstraint(m=3, t=8, sz=3)
     cmds.polySelectConstraint(dis=True)
-    print('Ngons Selected')
 
 
 def selectAll():
@@ -149,14 +143,17 @@ def inverse(selectedObjects):
 def selectVerts():
     global currentSelectMode
     vertices = cmds.polyListComponentConversion(toVertex=True)
+    mel.eval("changeSelectMode -component;")
+    mel.eval("setComponentPickMask ""Point"" true;")
     cmds.select(vertices)
     currentSelectMode = SelectMode.VERTEX
-    print(currentSelectMode)
 
 
 def selectEdge():
     global currentSelectMode
     edges = cmds.polyListComponentConversion(toEdge=True)
+    mel.eval("changeSelectMode -component;")
+    mel.eval("setComponentPickMask ""Line"" true;")
     cmds.select(edges)
     currentSelectMode = SelectMode.EDGE
 
@@ -164,14 +161,15 @@ def selectEdge():
 def selectFace():
     global currentSelectMode
     faces = cmds.polyListComponentConversion(toFace=True)
+    mel.eval("changeSelectMode -component;")
+    mel.eval("setComponentPickMask ""Facet"" true;")
     cmds.select(faces)
     currentSelectMode = SelectMode.FACE
 
 
 def selectObj():
     global currentSelectMode
-    faces = cmds.polyListComponentConversion(toObject=True)
-    cmds.select(faces)
+    cmds.selectMode(object=True)
     currentSelectMode = SelectMode.OBJ
 
 
