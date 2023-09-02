@@ -1,0 +1,23 @@
+{
+    "Asset" : "AST",
+    "Geometry" : "GEO",
+    "NURBS Objects" : "NRB_OBJ",
+    "Polygon Objects" : "POLY_OBJ",
+    "Subdiv Objects" : "SUBD_OBJ",
+    "GPU Cache" : "GPU",
+    "Cameras" : "CAM",
+    "Joints" : "JNT",
+    "IkHandles" : "IK_HNDL",
+    "Characters" : "CHR",
+    "Clips" : "CLP",
+    "Sets" : "SET",
+    "Lights": "LIT",
+    "Optical FX" : "OPT_FX",
+    "Light Sets" : "LIT_SET",
+    "MASH" : "MSH",
+    "NURBS Curve" : "NRB_CRV",
+    "Text" : "TXT",
+    "Construction Plane" : "CP",
+    "Image Plane" : "IP",
+    "Locator" : "LOC"
+}
