@@ -19,7 +19,7 @@ def PrefixFormattingMain():
     loadJsonFile(filePath)
     PrefixFormattingUI()
     setObjectPrefix()
-    assignPrefix()
+    sortObjects(getObjects())
 
 
 def PrefixFormattingUI():
@@ -44,7 +44,7 @@ def PrefixFormattingUI():
     cmds.iconTextStaticLabel(st='textOnly', l="Object Type")
     cmds.checkBox('Asset_CB', l="Asset", height=20, value=False, cc = lambda args: printSomething())
     cmds.separator(height=10, style='in')
-    cmds.checkBox('Geometry_CB', l="Geometry", height=20, value=True)
+    cmds.checkBox('Mesh_CB', l="Mesh", height=20, value=True)
     cmds.separator(height=10, style='in')
     cmds.checkBox('NURBS_Objects_CB', l="NURBS Objects", height=20, value=False)
     cmds.separator(height=10, style='in')
@@ -54,7 +54,7 @@ def PrefixFormattingUI():
     cmds.iconTextStaticLabel(st='textOnly', l='Prefix')
     cmds.textField('Asset_TF', height=20)
     cmds.separator(height=10, style='in')
-    cmds.textField('Geometry_TF', height=20)
+    cmds.textField('Mesh_TF', height=20)
     cmds.separator(height=10, style='in')
     cmds.textField('NURBS_Objects_TF', height=20)
     cmds.separator(height=10, style='in')
@@ -83,7 +83,7 @@ def loadJsonFile(filePath):
 
 def setObjectPrefix():
     cmds.textField('Asset_TF', w=5, e=True, tx=prefixFormattingOptionsJson['Asset'])
-    cmds.textField('Geometry_TF', e=True, tx=prefixFormattingOptionsJson['Geometry'])
+    cmds.textField('Mesh_TF', e=True, tx=prefixFormattingOptionsJson['Mesh'])
     cmds.textField('NURBS_Objects_TF', e=True, tx=prefixFormattingOptionsJson['NURBS_Objects'])
     """cmds.textField('Polygon Objects_TF', e=True, tx=prefixFormattingOptionsJson['Polygon_Objects'])
     cmds.textField('Subdiv Objects_TF', e=True, tx=prefixFormattingOptionsJson['Subdiv_Objects'])
@@ -92,10 +92,34 @@ def setObjectPrefix():
     cmds.textField('Joints_TF', e=True, tx=prefixFormattingOptionsJson['Joints'])"""
 
 
-def assignPrefix():
-    objects = cmds.ls()
-    objects.sort(key=len, reverse=True)
-    print(objects)
+def getObjects():
+    objectList = cmds.ls(shapes=True, materials=True)
+    objectList.sort()
+    return objectList
+
+
+def classifyObject(object):
+    classification = cmds.objectType(object)
+    return classification
+
+
+def sortObjects(objects):
+    for obj in objects:
+        classification = classifyObject(obj)
+        if classification == 'nurbsSurface':
+            assignPrefix(prefixFormattingOptionsJson['NURBS_Objects'], obj)
+
+
+def assignPrefix(prefix, obj):
+
+    if prefix in obj:
+        print("Prefix already included")
+        return
+
+    print('Prefix assigned to ' + obj)
+    newName = prefix + "_" + obj
+    print(newName)
+    cmds.rename(obj, newName)
 
 
 def printSomething():

@@ -1,7 +1,7 @@
 {
     "Asset" : "AST",
-    "Geometry" : "GEO",
-    "NURBS_Objects" : "NRB_OBJ",
+    "Mesh" : "SM",
+    "NURBS_Objects" : "NRB_SUR",
     "Polygon_Objects" : "POLY_OBJ",
     "Subdiv_Objects" : "SUBD_OBJ",
     "GPU_Cache" : "GPU",
@@ -20,5 +20,6 @@
     "Construction_Plane" : "CP",
     "Image_Plane" : "IP",
     "Locator" : "LOC",
-    "Material" : "MAT"
+    "Material" : "MAT",
+    "Volume": "VOL"
 }
