@@ -19,7 +19,6 @@ def PrefixFormattingMain():
     loadJsonFile(filePath)
     PrefixFormattingUI()
     setObjectPrefix()
-    sortObjects(getObjects())
 
 
 def PrefixFormattingUI():
@@ -35,6 +34,10 @@ def PrefixFormattingUI():
 
     cmds.separator(h=10, style='none')
     cmds.iconTextStaticLabel(st='textOnly', l='Prefix Format Options', align='center', font='boldLabelFont')
+    cmds.separator(h=10, style='none')
+    cmds.button(l='Assign Prefixes', command=lambda args:sortObjects(getObjects()))
+    cmds.separator(h=10, style='none')
+    cmds.button(l='Remove Prefixes', command=lambda args:removeAllPrefixes(getObjects()))
     cmds.separator(h=10, style='none')
 
     cmds.rowColumnLayout('CheckBoxColumn', nc=2, cw=[(1, 100), (2, 100)], cs=[(1, 10), (2, 10)], p='mainUI_A')
@@ -108,18 +111,65 @@ def sortObjects(objects):
         classification = classifyObject(obj)
         if classification == 'nurbsSurface':
             assignPrefix(prefixFormattingOptionsJson['NURBS_Objects'], obj)
+            # assignPrefix()
 
 
 def assignPrefix(prefix, obj):
-
     if prefix in obj:
+        print('Prefix assigned to ' + obj)
+        cmds.select(obj)
         print("Prefix already included")
         return
 
     print('Prefix assigned to ' + obj)
-    newName = prefix + "_" + obj
-    print(newName)
-    cmds.rename(obj, newName)
+
+    # Change name of objects Transform
+    objectTransform = cmds.listRelatives(obj, parent=True, fullPath=True)
+    for i in objectTransform:
+        if prefix in i:
+            print('Prefix already in object transform')
+            continue
+        reformattedName = i.removeprefix('|')
+        newTransformName = prefix + "_" + reformattedName
+        print("New Transform Name: " + newTransformName)
+        cmds.rename(i, newTransformName)
+
+    # Change name of object
+    newObjectName = prefix + "_" + obj
+    print("New Object Name: " + newObjectName)
+    cmds.rename(obj, newObjectName)
+
+
+def removeAllPrefixes(objects):
+    for obj in objects:
+        classification = classifyObject(obj)
+        if classification == 'nurbsSurface':
+            removeTransformPrefix(prefixFormattingOptionsJson['NURBS_Objects'], obj)
+            removeObjectPrefix(prefixFormattingOptionsJson['NURBS_Objects'], obj)
+
+
+def removeObjectPrefix(prefix, obj):
+    if prefix in obj:
+        prefix += '_'
+        print('Removing this prefix: ' + prefix)
+        print('Objects current name: ' + obj)
+        newName = obj.removeprefix(prefix)
+        cmds.rename(obj, newName)
+        print('Prefix removed from: ' + newName)
+        return
+
+
+def removeTransformPrefix(prefix, obj):
+    objectTransform = cmds.listRelatives(obj, parent=True, fullPath=True)
+    for i in objectTransform:
+        if prefix in i:
+            reformattedName = i.removeprefix('|')
+            prefix += '_'
+            print('Removing this prefix: ' + prefix)
+            print('Transforms current name: ' + reformattedName)
+            newName = reformattedName.removeprefix(prefix)
+            cmds.rename(i, newName)
+            print('Prefix removed from: ' + newName)
 
 
 def printSomething():
