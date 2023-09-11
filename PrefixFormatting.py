@@ -18,7 +18,7 @@ def PrefixFormattingMain():
     filePath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "prefixFormattingSettings.json")
     loadJsonFile(filePath)
     PrefixFormattingUI()
-    setObjectPrefix()
+    initObjectPrefix()
 
 
 def PrefixFormattingUI():
@@ -35,21 +35,23 @@ def PrefixFormattingUI():
     cmds.separator(h=10, style='none')
     cmds.iconTextStaticLabel(st='textOnly', l='Prefix Format Options', align='center', font='boldLabelFont')
     cmds.separator(h=10, style='none')
-    cmds.button(l='Assign Prefixes', command=lambda args:sortObjects(getObjects()))
+    cmds.button(l='Assign Prefixes', command=lambda args: assignAllPrefixes(getObjects()))
     cmds.separator(h=10, style='none')
-    cmds.button(l='Remove Prefixes', command=lambda args:removeAllPrefixes(getObjects()))
+    cmds.button(l='Remove Prefixes', command=lambda args: removeAllPrefixes(getObjects()))
+    cmds.separator(h=10, style='none')
+    cmds.button(l='Revert Prefixes', command=lambda args: initObjectPrefix())
     cmds.separator(h=10, style='none')
 
-    cmds.rowColumnLayout('CheckBoxColumn', nc=2, cw=[(1, 100), (2, 100)], cs=[(1, 10), (2, 10)], p='mainUI_A')
+    cmds.rowColumnLayout('CheckBoxColumn', nc=2, cw=[(1, 100), (2, 80)], cs=[(1, 10), (2, 10)], p='mainUI_A')
 
     # Check Boxes
     cmds.frameLayout(labelVisible=False, width=75, p='CheckBoxColumn')
     cmds.iconTextStaticLabel(st='textOnly', l="Object Type")
-    cmds.checkBox('Asset_CB', l="Asset", height=20, value=False, cc = lambda args: printSomething())
+    cmds.checkBox('Asset_CB', l="Asset", height=20, value=False)
     cmds.separator(height=10, style='in')
     cmds.checkBox('Mesh_CB', l="Mesh", height=20, value=True)
     cmds.separator(height=10, style='in')
-    cmds.checkBox('NURBS_Objects_CB', l="NURBS Objects", height=20, value=False)
+    cmds.checkBox('NURBS_Objects_CB', l="NURBS Objects", height=20, value=False, cc=lambda args: printSomething())
     cmds.separator(height=10, style='in')
 
     # Text Fields
@@ -84,7 +86,7 @@ def loadJsonFile(filePath):
             return None
 
 
-def setObjectPrefix():
+def initObjectPrefix():
     cmds.textField('Asset_TF', w=5, e=True, tx=prefixFormattingOptionsJson['Asset'])
     cmds.textField('Mesh_TF', e=True, tx=prefixFormattingOptionsJson['Mesh'])
     cmds.textField('NURBS_Objects_TF', e=True, tx=prefixFormattingOptionsJson['NURBS_Objects'])
@@ -101,69 +103,52 @@ def getObjects():
     return objectList
 
 
-def classifyObject(object):
-    classification = cmds.objectType(object)
+def classifyObject(obj):
+    classification = cmds.objectType(obj)
     return classification
 
 
-def sortObjects(objects):
+def assignAllPrefixes(objects):
     for obj in objects:
         classification = classifyObject(obj)
-        if classification == 'nurbsSurface':
-            assignPrefix(prefixFormattingOptionsJson['NURBS_Objects'], obj)
-            # assignPrefix()
+        if classification == 'nurbsSurface' and cmds.checkBox('NURBS_Objects_CB', q=True, v=True):
+            assignPrefixes(cmds.textField('NURBS_Objects_TF', q=True, tx=True), obj)
+            # assignObjectPrefix(prefixFormattingOptionsJson['NURBS_Objects'], obj)
+        elif classification == 'nurbsSurface':
+            print("Checkbox is not true")
 
 
-def assignPrefix(prefix, obj):
-    if prefix in obj:
-        print('Prefix assigned to ' + obj)
-        cmds.select(obj)
-        print("Prefix already included")
-        return
-
-    print('Prefix assigned to ' + obj)
-
+def assignPrefixes(prefix, obj):
     # Change name of objects Transform
-    objectTransform = cmds.listRelatives(obj, parent=True, fullPath=True)
+    objectTransform = cmds.listRelatives(obj, parent=True)
     for i in objectTransform:
         if prefix in i:
             print('Prefix already in object transform')
             continue
-        reformattedName = i.removeprefix('|')
+        print("Object Transforms: " + str(cmds.listRelatives(obj, parent=True)))
+        reformattedName = i.replace('|', '')
         newTransformName = prefix + "_" + reformattedName
-        print("New Transform Name: " + newTransformName)
+        print("New Prefix: " + prefix)
+        print("New Reformatted Name: " + reformattedName)
+        print("New Name: " + newTransformName)
         cmds.rename(i, newTransformName)
-
-    # Change name of object
-    newObjectName = prefix + "_" + obj
-    print("New Object Name: " + newObjectName)
-    cmds.rename(obj, newObjectName)
 
 
 def removeAllPrefixes(objects):
     for obj in objects:
         classification = classifyObject(obj)
-        if classification == 'nurbsSurface':
-            removeTransformPrefix(prefixFormattingOptionsJson['NURBS_Objects'], obj)
-            removeObjectPrefix(prefixFormattingOptionsJson['NURBS_Objects'], obj)
+        if classification == 'nurbsSurface' and cmds.checkBox('NURBS_Objects_CB', q=True,  v=True):
+            removePrefixes(cmds.textField('NURBS_Objects_TF', q=True, tx=True), obj)
+            # removeObjectPrefix(prefixFormattingOptionsJson['NURBS_Objects'], obj)
+        elif classification == 'nurbsSurface':
+            print("Checkbox is not true")
 
 
-def removeObjectPrefix(prefix, obj):
-    if prefix in obj:
-        prefix += '_'
-        print('Removing this prefix: ' + prefix)
-        print('Objects current name: ' + obj)
-        newName = obj.removeprefix(prefix)
-        cmds.rename(obj, newName)
-        print('Prefix removed from: ' + newName)
-        return
-
-
-def removeTransformPrefix(prefix, obj):
-    objectTransform = cmds.listRelatives(obj, parent=True, fullPath=True)
+def removePrefixes(prefix, obj):
+    objectTransform = cmds.listRelatives(obj, parent=True)
     for i in objectTransform:
         if prefix in i:
-            reformattedName = i.removeprefix('|')
+            reformattedName = i.replace('|', '')
             prefix += '_'
             print('Removing this prefix: ' + prefix)
             print('Transforms current name: ' + reformattedName)
@@ -173,4 +158,29 @@ def removeTransformPrefix(prefix, obj):
 
 
 def printSomething():
-    print("Something")
+    print("Nurbs checkbox is: " + str(cmds.checkBox('NURBS_Objects_CB', q=True, v=True)))
+
+
+"""def removeObjectPrefix(prefix, obj):
+    if prefix in obj:
+        prefix += '_'
+        print('Removing this prefix: ' + prefix)
+        print('Objects current name: ' + obj)
+        newName = obj.removeprefix(prefix)
+        cmds.rename(obj, newName)
+        print('Prefix removed from: ' + newName)
+        return"""
+
+
+"""def assignObjectPrefix(prefix, obj):
+    if prefix in obj:
+        print('Prefix assigned to ' + obj)
+        cmds.select(obj)
+        print("Prefix already included")
+        return
+
+    # Change name of object
+    newObjectName = prefix + "_" + obj
+    print("New Object Name: " + newObjectName)
+    cmds.rename(obj, newObjectName)"""
+
