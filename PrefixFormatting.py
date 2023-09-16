@@ -42,7 +42,9 @@ def PrefixFormattingUI():
     cmds.button(l='Revert Prefixes', command=lambda args: initObjectPrefix())
     cmds.separator(h=10, style='none')
 
-    cmds.rowColumnLayout('CheckBoxColumn', nc=2, cw=[(1, 100), (2, 80)], cs=[(1, 10), (2, 10)], p='mainUI_A')
+    cmds.rowColumnLayout('CheckBoxColumn', nc=1, cw=[(1, 100)], cs=[(1, 10)], p='mainUI_A')
+    cmds.rowColumnLayout('TextBoxColumn', nc=1, cw=[(1, 100)], cs=[(1, 10)], p='mainUI_A')
+    cmds.rowColumnLayout('SelectColumn', nc=1, cw=[(1, 100)], cs=[(1, 10)], p='mainUI_A')
 
     # Check Boxes
     cmds.frameLayout(labelVisible=False, width=75, p='CheckBoxColumn')
@@ -55,7 +57,7 @@ def PrefixFormattingUI():
     cmds.separator(height=10, style='in')
 
     # Text Fields
-    cmds.frameLayout(labelVisible=False, width=75, p='CheckBoxColumn')
+    cmds.frameLayout(labelVisible=False, width=75, p='TextBoxColumn')
     cmds.iconTextStaticLabel(st='textOnly', l='Prefix')
     cmds.textField('Asset_TF', height=20)
     cmds.separator(height=10, style='in')
@@ -63,6 +65,13 @@ def PrefixFormattingUI():
     cmds.separator(height=10, style='in')
     cmds.textField('NURBS_Objects_TF', height=20)
     cmds.separator(height=10, style='in')
+
+    # Selection Prefixes
+    cmds.frameLayout(labelVisible=False, width=75, p='SelectColumn')
+    cmds.iconTextStaticLabel(st='textOnly', l='Selection Prefix', align='center', font='boldLabelFont')
+    cmds.textField('Selection_TF', text= 'test', height=20)
+    cmds.button(l='Assign Prefixes', command=lambda args: assignSelectionPrefix(getSelectedObjects()))
+    cmds.button(l='Remove Prefixes', command=lambda args: removeSelectionPrefix(getSelectedObjects()))
 
     cmds.showWindow('PrefixFormattingWin')
 
@@ -103,6 +112,13 @@ def getObjects():
     return objectList
 
 
+def getSelectedObjects():
+    objectList = cmds.ls(selection=True)
+    objectList.sort()
+    print(str(objectList) + " Selected")
+    return objectList
+
+
 def classifyObject(obj):
     classification = cmds.objectType(obj)
     return classification
@@ -118,20 +134,29 @@ def assignAllPrefixes(objects):
             print("Checkbox is not true")
 
 
+def assignSelectionPrefix(objects):
+    hierarchy = cmds.listRelatives(ad=True)
+    print("Selected Object Hierarchy: " + str(hierarchy))
+    for obj in objects:
+        assignObjectPrefix(cmds.textField('Selection_TF', q=True, tx=True), obj)
+    for obj in hierarchy:
+        assignObjectPrefix(cmds.textField('Selection_TF', q=True, tx=True), obj)
+
+
 def assignPrefixes(prefix, obj):
     # Change name of objects Transform
     objectTransform = cmds.listRelatives(obj, parent=True)
-    for i in objectTransform:
-        if prefix in i:
+    for objTrnsfm in objectTransform:
+        if prefix in objTrnsfm:
             print('Prefix already in object transform')
             continue
         print("Object Transforms: " + str(cmds.listRelatives(obj, parent=True)))
-        reformattedName = i.replace('|', '')
+        reformattedName = objTrnsfm.replace('|', '')
         newTransformName = prefix + "_" + reformattedName
         print("New Prefix: " + prefix)
         print("New Reformatted Name: " + reformattedName)
         print("New Name: " + newTransformName)
-        cmds.rename(i, newTransformName)
+        cmds.rename(objTrnsfm, newTransformName)
 
 
 def removeAllPrefixes(objects):
@@ -161,18 +186,20 @@ def printSomething():
     print("Nurbs checkbox is: " + str(cmds.checkBox('NURBS_Objects_CB', q=True, v=True)))
 
 
-"""def removeObjectPrefix(prefix, obj):
-    if prefix in obj:
-        prefix += '_'
-        print('Removing this prefix: ' + prefix)
-        print('Objects current name: ' + obj)
-        newName = obj.removeprefix(prefix)
-        cmds.rename(obj, newName)
-        print('Prefix removed from: ' + newName)
-        return"""
+def removeSelectionPrefix(objects):
+    prefix = cmds.textField('Selection_TF', q=True, tx=True)
+    for obj in objects:
+        if prefix in obj:
+            prefix += '_'
+            print('Removing this prefix: ' + prefix)
+            print('Objects current name: ' + obj)
+            newName = obj.removeprefix(prefix)
+            cmds.rename(obj, newName)
+            print('Prefix removed from: ' + newName)
+            return
 
 
-"""def assignObjectPrefix(prefix, obj):
+def assignObjectPrefix(prefix, obj):
     if prefix in obj:
         print('Prefix assigned to ' + obj)
         cmds.select(obj)
@@ -182,5 +209,5 @@ def printSomething():
     # Change name of object
     newObjectName = prefix + "_" + obj
     print("New Object Name: " + newObjectName)
-    cmds.rename(obj, newObjectName)"""
+    cmds.rename(obj, newObjectName)
 
