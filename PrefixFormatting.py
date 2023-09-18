@@ -188,6 +188,8 @@ def printSomething():
 
 def removeSelectionPrefix(objects):
     prefix = cmds.textField('Selection_TF', q=True, tx=True)
+    hierarchy = cmds.listRelatives(ad=True)
+    print("Selected Object Hierarchy: " + str(hierarchy))
     for obj in objects:
         if prefix in obj:
             prefix += '_'
@@ -196,7 +198,16 @@ def removeSelectionPrefix(objects):
             newName = obj.removeprefix(prefix)
             cmds.rename(obj, newName)
             print('Prefix removed from: ' + newName)
-            return
+
+    for obj in hierarchy:
+        if prefix in obj:
+            prefix += '_'
+            print('Removing this prefix: ' + prefix)
+            print('Objects current name: ' + obj)
+            newName = obj.removeprefix(prefix)
+            cmds.rename(obj, newName)
+            print('Prefix removed from: ' + newName)
+    return
 
 
 def assignObjectPrefix(prefix, obj):
