@@ -126,10 +126,15 @@ def PrefixFormattingUI():
 
     # Selection Prefixes
     cmds.frameLayout(labelVisible=False, width=100, p='SelectColumn')
-    cmds.iconTextStaticLabel(st='textOnly', l='Selection Prefix', align='center', font='boldLabelFont')
+    cmds.iconTextStaticLabel(st='textOnly', l='Selection Prefix/Suffx', align='center', font='boldLabelFont')
+    cmds.rowColumnLayout(nr=1, rh=[(1, 35)], ral=[(1, 'center')], p='SelectColumn')
+    cmds.radioCollection('rc_PrefixSuffix')
+    cmds.radioButton('PrefixRadio', l='Prefix', sl=True)
+    cmds.radioButton('SuffixRadio', l='Suffix')
+    cmds.frameLayout(labelVisible=False, width=100, p='SelectColumn')
     cmds.textField('Selection_TF', text='Default', height=20)
-    cmds.button(l='Assign Prefixes', command=lambda args: assignSelectionPrefix(getSelectedObjects()))
-    cmds.button(l='Remove Prefixes', command=lambda args: removeSelectionPrefix(getSelectedObjects()))
+    cmds.button(l='Assign', command=lambda args: assignSelection(getSelectedObjects()))
+    cmds.button(l='Remove', command=lambda args: removeSelection(getSelectedObjects()))
 
     cmds.showWindow('PrefixFormattingWin')
 
@@ -273,13 +278,51 @@ def assignPrefixes(prefix, obj):
             cmds.warning(str(obj) + " is read only! Cannot change the name!")
 
 
-def assignSelectionPrefix(objects):
+def assignSelection(objects):
+    # Assigns either a prefix or suffix depending on radio selection
     hierarchy = cmds.listRelatives(ad=True)
     for obj in objects:
-        assignPrefixes(cmds.textField('Selection_TF', q=True, tx=True), obj)
+        if cmds.radioButton('PrefixRadio', query=True, select=True):
+            assignPrefixes(cmds.textField('Selection_TF', q=True, tx=True), obj)
+        elif cmds.radioButton('SuffixRadio', query=True, select=True):
+            assignSuffix(cmds.textField('Selection_TF', q=True, tx=True), obj)
     if hierarchy:
         for obj in hierarchy:
-            assignPrefixes(cmds.textField('Selection_TF', q=True, tx=True), obj)
+            if cmds.radioButton('PrefixRadio', query=True, select=True):
+                assignPrefixes(cmds.textField('Selection_TF', q=True, tx=True), obj)
+            elif cmds.radioButton('SuffixRadio', query=True, select=True):
+                assignSuffix(cmds.textField('Selection_TF', q=True, tx=True), obj)
+
+
+def assignSuffix(suffix, obj):
+    # Change name of objects Transform
+    try:
+        objectTransform = cmds.listRelatives(obj, parent=True)
+    except:
+        return
+    if objectTransform:
+        for objTrnsfm in objectTransform:
+            if suffix in objTrnsfm:
+                continue
+            try:
+                reformattedName = objTrnsfm.replace('|', '')
+                newTransformName = reformattedName + "_" + suffix
+                print("New Name: " + newTransformName)
+                cmds.rename(objTrnsfm, newTransformName)
+            except:
+                cmds.warning(str(objTrnsfm) + " is read only! Cannot change the name!")
+            return
+    else:
+        if suffix in obj:
+            cmds.select(obj)
+            return
+        try:
+            # Change name of object
+            newObjectName = obj + "_" + suffix
+            print("New Object Name: " + newObjectName)
+            cmds.rename(obj, newObjectName)
+        except:
+            cmds.warning(str(obj) + " is read only! Cannot change the name!")
 
 
 def removeAllPrefixes(objects):
@@ -353,10 +396,42 @@ def removePrefixes(prefix, obj):
                 cmds.warning(str(obj) + " is read only! Cannot change the name!")
 
 
-def removeSelectionPrefix(objects):
+def removeSuffixes(suffix, obj):
+    try:
+        objectTransform = cmds.listRelatives(obj, parent=True)
+    except:
+        return
+    if objectTransform:
+        for i in objectTransform:
+            if suffix in i:
+                reformattedName = i.replace('|', '')
+                suffix = '_' + suffix
+                newName = reformattedName.removesuffix(suffix)
+                cmds.rename(i, newName)
+                print('Prefix removed from: ' + newName)
+    else:
+        if suffix in obj:
+            try:
+                # Change name of object
+                suffix = '_' + suffix
+                newName = obj.removesuffix(suffix)
+                cmds.rename(obj, newName)
+                print('Prefix removed from: ' + newName)
+            except:
+                cmds.warning(str(obj) + " is read only! Cannot change the name!")
+
+
+def removeSelection(objects):
+    # Removes either a prefix or suffix depending on radio selection
     hierarchy = cmds.listRelatives(ad=True)
     for obj in objects:
-        removePrefixes(cmds.textField('Selection_TF', q=True, tx=True), obj)
+        if cmds.radioButton('PrefixRadio', query=True, select=True):
+            removePrefixes(cmds.textField('Selection_TF', q=True, tx=True), obj)
+        elif cmds.radioButton('SuffixRadio', query=True, select=True):
+            removeSuffixes(cmds.textField('Selection_TF', q=True, tx=True), obj)
     if hierarchy:
         for obj in hierarchy:
-            removePrefixes(cmds.textField('Selection_TF', q=True, tx=True), obj)
+            if cmds.radioButton('PrefixRadio', query=True, select=True):
+                removePrefixes(cmds.textField('Selection_TF', q=True, tx=True), obj)
+            elif cmds.radioButton('SuffixRadio', query=True, select=True):
+                removeSuffixes(cmds.textField('Selection_TF', q=True, tx=True), obj)
