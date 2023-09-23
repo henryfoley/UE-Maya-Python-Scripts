@@ -127,7 +127,8 @@ def PrefixFormattingUI():
     # Selection Prefixes
     cmds.frameLayout(labelVisible=False, width=100, p='SelectColumn')
     cmds.iconTextStaticLabel(st='textOnly', l='Selection Prefix/Suffx', align='center', font='boldLabelFont')
-    cmds.rowColumnLayout(nr=1, rh=[(1, 35)], ral=[(1, 'center')], p='SelectColumn')
+    cmds.rowLayout(nc=3, cw3=[110, 100, 100], h=50, p='SelectColumn')
+    cmds.separator()
     cmds.radioCollection('rc_PrefixSuffix')
     cmds.radioButton('PrefixRadio', l='Prefix', sl=True)
     cmds.radioButton('SuffixRadio', l='Suffix')
