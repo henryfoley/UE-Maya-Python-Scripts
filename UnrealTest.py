@@ -4,7 +4,8 @@ import time
 
 import unreal
 
-path = '/Game/StarterContent/Materials'
+path = '/Game/TestFolder'
+#path = '/Game/StarterContent/Materials'
 
 asset_list = unreal.AssetRegistryHelpers.get_asset_registry().get_assets_by_path(path)
 #asset_list = unreal.AssetRegistryHelpers.get_asset_registry().get_assets_by_class()
@@ -21,7 +22,19 @@ with unreal.ScopedSlowTask(total_frames, text_label) as slow_task:
     for asset in asset_list:
         if slow_task.should_cancel():
             break
-        #if asset.get_class() == 'Materials':
-        print(asset)
+
+        # Get Asset Type and name
+        assetType = asset.get_class().get_name()
+        assetFilePath = asset.get_export_text_name()
+
+        """if assetType == "Blueprint":
+            print("Found Static Mesh: " + str(assetFilePath))
+        elif assetType == 'Material':
+            print("Found Mat")
+        elif assetType == 'NiagaraSystem':
+            print("Found Niagara")
+        elif assetType == 'StaticMesh':
+            print("Found Static Mesh: " + str(assetFilePath))"""
+        print("Asset: " + str(asset) + "Class: " + str(asset.get_class()))
         time.sleep(0.1)
         slow_task.enter_progress_frame(1)
