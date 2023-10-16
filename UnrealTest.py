@@ -57,12 +57,16 @@ with unreal.ScopedSlowTask(total_frames, text_label) as slow_task:
 
         if assetType == "Blueprint":
             print("Found Static Mesh: " + str(assetFilePath))
+            continue
         elif assetType == 'Material':
             print("Found Mat" + str(assetFilePath))
+            continue
         elif assetType == 'NiagaraSystem':
             print("Found Niagara")
+            continue
         elif assetType == 'StaticMesh':
             print("Found Static Mesh: " + str(assetFilePath))
+            continue
         else:
             print("This asset type has no prefix code: " + str(assetFilePath))
         print("Asset: " + str(asset) + "Class: " + str(asset.get_class()))
