@@ -6,12 +6,17 @@ import unreal
 import json
 import os
 
+@unreal.uclass()
+class GlobalEditorUtilityBase(unreal.GlobalEditorUtilityBase): pass
+
+utilBase = GlobalEditorUtilityBase()
 unrealPrefixes = []
 
 path = '/Game/TestFolder'
 #path = '/Game/StarterContent/Materials'
 
 asset_list = unreal.AssetRegistryHelpers.get_asset_registry().get_assets_by_path(path)
+
 #asset_list = unreal.AssetRegistryHelpers.get_asset_registry().get_assets_by_class()
 
 """print(asset_list)
@@ -21,28 +26,37 @@ for asset in asset_list:
 
 
 def main():
-    filePath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "prefixFormattingSettings.json")
+    filePath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "unrealPrefixes.json")
     loadJsonFile(filePath)
 
 
 def loadJsonFile(filePath):
     global unrealPrefixes
 
-    if os.path.exists(filePath):
-        prefixFormattingOptionsJson = json.load(open(filePath))
+    if os.path.exists(filePath):  # Change back to 'filePath'
+        unrealPrefixes = json.load(open(filePath))
     else:
         # Display file not found message
         unreal.log_warning('Cannot find the JSON file: prefixFormattingSettings.json')
-
+        print("TESTING")
         # Open a file explorer to locate the file
         fileFilter = "JSON Files (*.json)"
-        filePath = filePath.asset_reimport('open_file_dialog')
+        filePath = unreal.DirectoryPath()
         if filePath:
             return loadJsonFile(filePath[0])
         else:
             return None
 
 
+def assignPrefix(assetName, prefix):
+    renamedAsset = prefix + assetName
+    print(renamedAsset)
+    # unreal.rename_asset(str(assetName), '/Game/Ops/FooBarUpdated')
+
+
+main()
+#for asset in unrealPrefixes:
+ #   print(asset)
 total_frames = len(asset_list)
 text_label = "Listing!"
 with unreal.ScopedSlowTask(total_frames, text_label) as slow_task:
@@ -53,12 +67,14 @@ with unreal.ScopedSlowTask(total_frames, text_label) as slow_task:
 
         # Get Asset Type and name
         assetType = asset.get_class().get_name()
-        assetFilePath = asset.get_export_text_name()
+        assetName = asset.get_editor_property('asset_name')
 
         if assetType == "Blueprint":
-            print("Found Static Mesh: " + str(assetFilePath))
+            print("Found Blueprint: " + str(assetName) + " JSON Code: " + unrealPrefixes['Blueprint'])
+            utilBase.rename_asset(asset, "{}_{}".format(unrealPrefixes['Blueprint'], assetName))
+            print("Renamed Asset: " + str(assetName))
             continue
-        elif assetType == 'Material':
+        """elif assetType == 'Material':
             print("Found Mat" + str(assetFilePath))
             continue
         elif assetType == 'NiagaraSystem':
@@ -69,9 +85,7 @@ with unreal.ScopedSlowTask(total_frames, text_label) as slow_task:
             continue
         else:
             print("This asset type has no prefix code: " + str(assetFilePath))
-        print("Asset: " + str(asset) + "Class: " + str(asset.get_class()))
+        # print("Asset: " + str(asset) + "Class: " + str(asset.get_class()))"""
         time.sleep(0.1)
         slow_task.enter_progress_frame(1)
 
-def assignPrefix(assetName, prefix):
-    unreal.rename_asset(str(assetName), '/Game/Ops/FooBarUpdated')
