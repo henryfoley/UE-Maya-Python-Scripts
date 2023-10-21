@@ -48,10 +48,10 @@ def loadJsonFile(filePath):
             return None
 
 
-def assignPrefix(assetName, prefix):
-    renamedAsset = prefix + assetName
-    print(renamedAsset)
-    # unreal.rename_asset(str(assetName), '/Game/Ops/FooBarUpdated')
+def assignPrefix(assetName, packageName, prefix):
+    renamedAsset = prefix + str(assetName)
+    print("Renamed Asset: " + str(renamedAsset))
+    unreal.EditorAssetSubsystem.rename_asset(packageName, renamedAsset)
 
 
 main()
@@ -68,11 +68,14 @@ with unreal.ScopedSlowTask(total_frames, text_label) as slow_task:
         # Get Asset Type and name
         assetType = asset.get_class().get_name()
         assetName = asset.get_editor_property('asset_name')
+        assetPackageName = asset.get_editor_property('package_name')
 
         if assetType == "Blueprint":
             print("Found Blueprint: " + str(assetName) + " JSON Code: " + unrealPrefixes['Blueprint'])
-            utilBase.rename_asset(asset, "{}_{}".format(unrealPrefixes['Blueprint'], assetName))
-            print("Renamed Asset: " + str(assetName))
+            print("Asset: " + str(assetPackageName))
+            #assetName = unrealPrefixes['Blueprint'] + str(assetName)
+            assignPrefix(assetName, assetPackageName, unrealPrefixes['Blueprint'])
+            #utilBase.rename_asset(asset, "{}_{}".format(unrealPrefixes['Blueprint'], assetName))
             continue
         """elif assetType == 'Material':
             print("Found Mat" + str(assetFilePath))
