@@ -56,7 +56,9 @@ def assignPrefix(asset, prefix):
     print("Package Name: " + str(path))
     print("Renamed Asset: " + str(assetName))
 
-    if prefix in str(assetName):
+
+    #Check if Asset has a prefix
+    if "_" in str(assetName)[0:5]:
         print("Prefix already in Asset Name")
         return
     else:
