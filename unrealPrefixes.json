@@ -1,9 +1,9 @@
 {
     "Animation_Blueprint" : "ABP_",
-    "Montages" : "AM_",
+    "Animation_Montages" : "AM_",
     "Animation_Sequence" : "AS_",
     "Blueprint" : "BP_",
-    "Blend Space" : "BS_",
+    "Blend_Space" : "BS_",
     "Behavior_Tree" : "BT_",
     "Curve_Table" : "CT_",
     "Data_Table" : "DT_",
