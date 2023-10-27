@@ -11,6 +11,10 @@ unrealPrefixes = []
 path = '/Game/TestFolder'
 
 asset_list = unreal.AssetRegistryHelpers.get_asset_registry().get_assets_by_path(path)
+#asset_list = unreal.EditorUtilityLibrary.get_selected_assets()
+utility_base = unreal.GlobalEditorUtilityBase.get_default_object()
+#asset_list = list(utility_base.get_selected_assets())
+
 
 
 def main():
@@ -53,6 +57,13 @@ def assignPrefix(asset, prefix):
 
 
 def assignAllPrefixes():
+
+    if not asset_list:
+        unreal.log_warning('No Assets Selected!')
+        return
+    else:
+        print('This is the asset list: ' + str(asset_list))
+
     total_frames = len(asset_list)
     text_label = "Listing!"
     with unreal.ScopedSlowTask(total_frames, text_label) as slow_task:
@@ -60,7 +71,6 @@ def assignAllPrefixes():
         for asset in asset_list:
             if slow_task.should_cancel():
                 break
-
             # Get Asset Type and name
             assetType = asset.get_class().get_name()
             assetName = asset.get_editor_property('asset_name')
@@ -201,6 +211,9 @@ def assignAllPrefixes():
                 assignPrefix(asset, unrealPrefixes['Widget_Blueprint'])
                 continue
 
+            elif assetType == 'ObjectRedirector':
+                #Bootstrap case
+                continue
             else:
                 print("This asset type has no prefix code: " + str(assetType))
 
