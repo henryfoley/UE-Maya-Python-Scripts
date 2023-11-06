@@ -10,12 +10,17 @@ unrealPrefixes = []
 
 path = '/Game/TestFolder'
 
-asset_list = unreal.AssetRegistryHelpers.get_asset_registry().get_assets_by_path(path)
-#asset_list = unreal.EditorUtilityLibrary.get_selected_assets()
+#asset_list = unreal.AssetRegistryHelpers.get_asset_registry().get_assets_by_path(path)
+asset_list = unreal.EditorUtilityLibrary.get_selected_assets()
 utility_base = unreal.GlobalEditorUtilityBase.get_default_object()
 #asset_list = list(utility_base.get_selected_assets())
 
 
+class DialogException(Exception):
+    # Spawns message dialog on error
+    def __init__(self, message):
+        unreal.EditorDialog.show_message('Warning', message, unreal.AppMsgType.OK)
+        unreal.log_warning(message)
 
 def main():
     filePath = os.path.join(os.path.abspath(os.path.dirname(__file__)), "unrealPrefixes.json")
@@ -29,7 +34,7 @@ def loadJsonFile(filePath):
         unrealPrefixes = json.load(open(filePath))
     else:
         # Display file not found message
-        unreal.log_warning('Cannot find the JSON file: prefixFormattingSettings.json')
+        DialogException('Cannot find the JSON file: prefixFormattingSettings.json')
         print("TESTING")
         # Open a file explorer to locate the file
         fileFilter = "JSON Files (*.json)"
@@ -59,10 +64,11 @@ def assignPrefix(asset, prefix):
 def assignAllPrefixes():
 
     if not asset_list:
-        unreal.log_warning('No Assets Selected!')
+        DialogException('No Assets Selected!')
         return
     else:
         print('This is the asset list: ' + str(asset_list))
+
 
     total_frames = len(asset_list)
     text_label = "Listing!"
